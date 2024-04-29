@@ -56,7 +56,7 @@ typedef struct {
     u64 cap;
 } Clusters;
 
-Clusters BFS_step(Points *ps, f64(*metric)(Point, Point), f64 eps, u64 min_pts) {
+Clusters BFS(Points *ps, f64(*metric)(Point, Point), f64 eps, u64 min_pts) {
     debug_assert(ps->len == (ps->width * ps->height));
 
     PointsPtr queue = {0};
@@ -300,7 +300,7 @@ int main(s32 argc, const char *argv[]) {
     ps.height = height;
 
     profiler_start_measure("BFS");
-    Clusters clusters = BFS_step(&ps, metric, 10, 100);
+    Clusters clusters = BFS(&ps, metric, 10, 100);
     profiler_end_measure("BFS");
 
     points_to_image(&ps, width, height, output, &clusters);
