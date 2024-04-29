@@ -116,16 +116,16 @@ Clusters BFS(Points *ps, f64(*metric)(Point, Point), f64 eps, u64 min_pts) {
             count++;
         }
 
+        s32 label = UNDEFINED;
         if (count < min_pts)
-            it->label = NOISE;
+            label = NOISE;
         else {
             da_append(&ret, ((Cluster){.x = it->x, .y = it->y,
                         .r_avg = it->color.r / 255.0,
                         .g_avg = it->color.g / 255.0,
                         .b_avg = it->color.b / 255.0,
                         .id = ret.len, .count = 1}));
-            it->label = CLUSTER;
-            it->cluster = ret.len - 1;
+            label = CLUSTER;
         }
 
         queue.len = 0;
@@ -137,15 +137,15 @@ Clusters BFS(Points *ps, f64(*metric)(Point, Point), f64 eps, u64 min_pts) {
             s64 y = qt->y;
             
             bool *saw = &seen[y * ps->width + x];
-            if (*saw) {
+            if (qt->label != UNDEFINED || *saw) {
                 da_remove(&queue, 0);
                 continue;
             }
             *saw = true;
 
-            qt->label = it->label;
+            qt->label = label;
             if (qt->label == CLUSTER) {
-                qt->cluster = it->cluster;
+                qt->cluster = ret.len - 1;
                 ret.items[qt->cluster].x += qt->x;
                 ret.items[qt->cluster].y += qt->y;
                 ret.items[qt->cluster].r_avg += qt->color.r / 255.0;
@@ -300,7 +300,7 @@ int main(s32 argc, const char *argv[]) {
     ps.height = height;
 
     profiler_start_measure("BFS");
-    Clusters clusters = BFS(&ps, metric, 10, 100);
+    Clusters clusters = BFS(&ps, metric, 30, 5);
     profiler_end_measure("BFS");
 
     points_to_image(&ps, width, height, output, &clusters);
